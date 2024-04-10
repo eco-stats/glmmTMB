@@ -709,6 +709,8 @@ influence.glmmTMB <- function(model, ..., by.obs = FALSE) {
   call.list <- as.list(model$call)
   # indicate not to fit the model
   call.list$doFit <- FALSE
+  # remove starting parameters (if present can mess things up and are not needed to get the model structure)
+  call.list$start <- NULL
   # get the model structure (by re-running the model without fitting)
   mod_str <- eval(as.call(call.list)) # NOTE: this gets the corrected Z for smoothers since it evaluates mvlgcp()
   
@@ -778,7 +780,7 @@ influence.glmmTMB <- function(model, ..., by.obs = FALSE) {
           re_idx <- 1:n_re[[i_re]]
         } else {
           # for other random effects start at the previous index + 1 and up to the cumulative sum of random effect indices
-          re_idx <- (n_re[[i_re - 1]] + 1):cumsum(n_re)[[i_re]]
+          re_idx <- (cumsum(n_re)[[i_re - 1]] + 1):cumsum(n_re)[[i_re]]
         }
         # compute the new Z component
         newZ_comp <- mod_str$data.tmb$Z[ , re_idx] %*% IxLambda
@@ -1147,7 +1149,10 @@ biplot.glmmTMB <- function(x, ..., alpha = 0.5, load.names, score.col, load.col,
       b <- bf.coeffs
     }
   }
-  if (ncol(Lambda) > 2) {
+  # if (ncol(Lambda) > 2) {
+  #   warning("More than two latent factors found. Only the first two will be used")
+  # }
+  if (sum(grepl("d", colnames(bf.coeffs), fixed = T)) > 2) {
     warning("More than two latent factors found. Only the first two will be used")
   }
   
@@ -1178,7 +1183,7 @@ biplot.glmmTMB <- function(x, ..., alpha = 0.5, load.names, score.col, load.col,
   ### Create the biplot ########################################################
   {
     # par(mar = c(3.1,2.1,0.5,0),mgp=c(1.75,0.75,0))
-    plot(b, xlim = range(b[,1]), ylim = range(b[,2]),
+    plot(b[ , 1:2], xlim = range(b[,1]), ylim = range(b[,2]),
          pch = 16, col = score.col, ...)
     text(x = (sub.floads[,1] * alpha) + 0.1 * sign(sub.floads[,1]), y = (sub.floads[,2] * alpha) + 0.1 * sign(sub.floads[,2]), labels = sub.names, cex = load.name.cex, offset = 0.8, col=load.col)
     if (show.all.arrows) {
