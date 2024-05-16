@@ -7,15 +7,18 @@
 \method{biplot}{glmmTMB}(
   x,
   ...,
-  alpha = 0.5,
+  alpha,
   load.names,
   score.col,
   load.col,
   load.name.cex = 1,
   show.top.n,
-  vmax.rotation = FALSE,
-  rm.bias = T,
-  show.all.arrows = F
+  show.responses,
+  load.lab.offset,
+  do.svd = FALSE,
+  incl.ind.flds = TRUE,
+  show.all.arrows = FALSE,
+  rotate.by.theta
 )
 }
 \arguments{
@@ -23,7 +26,7 @@
 
 \item{...}{additional parameters as in \code{stats::biplot}}
 
-\item{alpha}{a numeric in [0,1] indicating the scaling of arrows/lines representing factor loading lengths. Defaults to 0.5}
+\item{alpha}{a numeric in [0,1] indicating the scaling of arrows/lines representing factor loading lengths. Defaults to the ratio of the maximum L2 norms for the scores to factor loadings.}
 
 \item{load.names}{(optional) a character vector of length \code{object$n_reponses} of labels to be used on response-specific loadings. Default is \code{NULL} which means the fitted model's \code{response.id} will be used to determine labels.}
 
@@ -33,13 +36,19 @@
 
 \item{load.name.cex}{(optional) a numeric indicating the scaling of response label size.}
 
-\item{show.top.n}{(optional) a numeric in [0,\code{object$n_reponses}] indicating a subset of the response-specific loadings (from largest to smallest).}
+\item{show.top.n}{(optional) a numeric in [1,\code{object$n_reponses}] indicating the number of response-specific loadings to show (from largest to smallest).}
 
-\item{vmax.rotation}{a logical indicating whether to perform a varimax rotation of the loadings matrix prior to plotting.}
+\item{show.responses}{(optional) a numeric vector with elements that are response indices (\emph{i.e.} in [1,\code{object$n_reponses}]) indicating a subset of the response-specific loadings to be plotted.}
 
-\item{rm.bias}{a logical indicating whether to remove bias from both the scores and factor loadings by scaling them # TODO: checks required}
+\item{load.lab.offset}{a numeric, indicating the offset for response labels on the factor loadings. Defaults to 0.1}
+
+\item{do.svd}{a logical indicating whether to additionally perform a Singular Value Decomposition on the approximate basis function coefficient matrix. Default is \code{FALSE}. Primarily used to include the additional independent fields so that the loadings are transformed to represent correlation between point patterns.}
+
+\item{incl.ind.flds}{a logical indicating whether to include basis function coefficients from independent fields (if the model has these) within the Singular Value Decomposition - will only apply when \code{do.svd = TRUE}, in which case the default is \code{TRUE}.}
 
 \item{show.all.arrows}{a logical indicating whether to plot all arrows/lines, even when \code{show.top.n} is used.}
+
+\item{rotate.by.theta}{a numeric, indicating a rotation of the biplot (in Radians).}
 }
 \value{
 See \code{stats::biplot}
