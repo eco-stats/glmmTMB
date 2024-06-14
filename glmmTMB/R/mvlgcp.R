@@ -1178,26 +1178,38 @@ biplot.glmmTMB <- function(x, ..., alpha, load.names, score.col, load.col, load.
     resp.names <- unique(x$response.id)
     load.names <- if (is(resp.names, "factor")) {levels(resp.names)} else {as.character(unique(resp.names))}
   }
-  
-  # subset the loadings if specified
-  if (!missing(show.responses)) {
+
+  # get the responses to display
+  if (missing(show.responses)) {
+    show.responses <- 1:length(load.names)
+  } else {
     if (!all(show.responses %in% 1:length(load.names))) {
       stop("response indices provided in 'show.responses' are not all within 1:n_responses")
     }
-    loads <- loads[show.responses, ]
-    load.names <- load.names[show.responses]
   }
-
-  # order the loadings by arrow lengths
-  arrow_lengths <- apply(loads, 1, norm, type = "2")
-  loads <- loads[order(arrow_lengths, decreasing = T), ]
-
-  # further subset the factor loadings to the largest n if required
+  
+  # subset the loadings if specified
+  sub.loads <- loads[show.responses, ]
+  sub.load.names <- load.names[show.responses]
+  
+  
+  # get the top n responses to display
   if (missing(show.top.n)) {
-    show.top.n <- nrow(loads)
+    show.top.n <- nrow(sub.loads)
+  } else {
+    if (show.top.n > nrow(sub.loads)) {
+      warning("'show.top.n' is greater than the number of responses to display. Specification of a small 'show.responses' could be the issue.\nDisplaying all available responses.")
+      show.top.n <- nrow(sub.loads)
+    }
   }
-  sub.loads <- loads[1:show.top.n, ]
-  sub.names <- load.names[order(arrow_lengths, decreasing = T)][1:show.top.n]
+  
+  # order the loadings by arrow lengths
+  arrow_lengths <- apply(sub.loads, 1, norm, type = "2")
+  sub.loads <- sub.loads[order(arrow_lengths, decreasing = T), ]
+  
+  # subset by the largest show.top.n factor loadings
+  sub.loads <- sub.loads[1:show.top.n, ]
+  sub.names <- sub.load.names[order(arrow_lengths, decreasing = T)][1:show.top.n]
   # determine colors
   if (missing(score.col)) {
     score.col <- "black"
@@ -1221,11 +1233,12 @@ biplot.glmmTMB <- function(x, ..., alpha, load.names, score.col, load.col, load.
   
   ### Create the biplot ########################################################
   {
-    plot(scores, xlim = range(c(scores, sub.loads * alpha)), ylim = range(c(scores, sub.loads * alpha)),
+    plot(scores, xlim = range(c(scores, if (show.all.arrows) {loads[,1]} else {sub.loads[,1]} * alpha)), ylim = range(c(scores, if (show.all.arrows) {loads[,2]} else {sub.loads[,2]} * alpha)),
          pch = score.pch, col = score.col, ...)
     text(x = (sub.loads[,1] * alpha) + (load.lab.offset * sign(sub.loads[,1])), y = (sub.loads[,2] * alpha) + (load.lab.offset * sign(sub.loads[,2])), labels = sub.names, cex = load.name.cex, col=load.col)#, offset = 0.8)
     if (show.all.arrows) {
-      arrows(x0 = rep(0, nrow(loads)), y0 = rep(0, nrow(loads)), x1 = loads[,1] * alpha, y1 = loads[,2] * alpha, length = 0.0, angle = 30, lwd = 0.5, col=load.col)
+      arrows(x0 = rep(0, nrow(loads)), y0 = rep(0, nrow(loads)), x1 = loads[,1] * alpha, y1 = loads[,2] * alpha, length = 0.0, angle = 30, lwd = 0.5, col="grey50", lty = "dashed")
+      arrows(x0 = rep(0, nrow(sub.loads)), y0 = rep(0, nrow(sub.loads)), x1 = sub.loads[,1] * alpha, y1 = sub.loads[,2] * alpha, length = 0.0, angle = 30, lwd = 0.5, col=load.col)
     } else {
       arrows(x0 = rep(0, nrow(sub.loads)), y0 = rep(0, nrow(sub.loads)), x1 = sub.loads[,1] * alpha, y1 = sub.loads[,2] * alpha, length = 0.0, angle = 30, lwd = 0.5, col=load.col)
     }
