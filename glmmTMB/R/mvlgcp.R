@@ -1135,6 +1135,9 @@ get_bfs_coeff <- function(object) {
 #' biplot(m)
 biplot.glmmTMB <- function(x, ..., alpha, load.names, score.col, load.col, load.name.cex = 1, show.top.n, show.responses, load.lab.offset, do.svd = FALSE, incl.ind.flds = TRUE, show.all.arrows = FALSE, rotate.by.theta) {
 
+  # capture the call
+  call.list <- as.list(match.call())
+  
   # extract the factor loadings and basis function coefficients
   fact_loads <- get_loadings(x)
   bf.coeffs <- get_bfs_coeff(x)
@@ -1233,8 +1236,18 @@ biplot.glmmTMB <- function(x, ..., alpha, load.names, score.col, load.col, load.
   
   ### Create the biplot ########################################################
   {
-    plot(scores, xlim = range(c(scores, if (show.all.arrows) {loads[,1]} else {sub.loads[,1]} * alpha)), ylim = range(c(scores, if (show.all.arrows) {loads[,2]} else {sub.loads[,2]} * alpha)),
-         pch = score.pch, col = score.col, ...)
+    if ("xlim" %in% names(call.list) & !"ylim" %in% names(call.list)) {
+      plot(scores, ylim = range(c(scores, if (show.all.arrows) {loads[,2]} else {sub.loads[,2]} * alpha)),
+           pch = score.pch, col = score.col, ...)
+    } else if (!"xlim" %in% names(call.list) & "ylim" %in% names(call.list)) {
+      plot(scores, xlim = range(c(scores, if (show.all.arrows) {loads[,1]} else {sub.loads[,1]} * alpha)),
+           pch = score.pch, col = score.col, ...)
+    } else if ("xlim" %in% names(call.list) & "ylim" %in% names(call.list)) {
+      plot(scores, pch = score.pch, col = score.col, ...)
+    } else {
+      plot(scores, xlim = range(c(scores, if (show.all.arrows) {loads[,1]} else {sub.loads[,1]} * alpha)), ylim = range(c(scores, if (show.all.arrows) {loads[,2]} else {sub.loads[,2]} * alpha)),
+           pch = score.pch, col = score.col, ...)
+    }
     text(x = (sub.loads[,1] * alpha) + (load.lab.offset * sign(sub.loads[,1])), y = (sub.loads[,2] * alpha) + (load.lab.offset * sign(sub.loads[,2])), labels = sub.names, cex = load.name.cex, col=load.col)#, offset = 0.8)
     if (show.all.arrows) {
       arrows(x0 = rep(0, nrow(loads)), y0 = rep(0, nrow(loads)), x1 = loads[,1] * alpha, y1 = loads[,2] * alpha, length = 0.0, angle = 30, lwd = 0.5, col="grey50", lty = "dashed")
