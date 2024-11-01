@@ -903,6 +903,7 @@ get_bfs_coeff <- function(object) {
 #' @param incl.ind.flds a logical indicating whether to include basis function coefficients from independent fields (if the model has these) within the Singular Value Decomposition - will only apply when \code{do.svd = TRUE}, in which case the default is \code{TRUE}.
 #' @param show.all.arrows a logical indicating whether to plot all arrows/lines, even when \code{show.top.n} is used.
 #' @param rotate.by.theta a numeric, indicating a rotation of the biplot (in Radians).
+#' @param arrow.head.length a numeric, length of the edges of the arrow head (in inches).
 #' 
 #' @return See \code{stats::biplot}
 #' @exportS3Method stats::biplot glmmTMB
@@ -918,7 +919,7 @@ get_bfs_coeff <- function(object) {
 #' m <- mvlgcp(pt ~ (1 | tree), data = dat, weights = dat$wt, basis.functions = bfs, response.id = dat$tree)
 #' 
 #' biplot(m)
-biplot.glmmTMB <- function(x, ..., alpha, load.names, score.col, load.col, load.name.cex = 1, show.top.n, show.responses, load.lab.offset, do.svd = FALSE, incl.ind.flds = TRUE, show.all.arrows = FALSE, rotate.by.theta) {
+biplot.glmmTMB <- function(x, ..., alpha, load.names, score.col, load.col, load.name.cex = 1, show.top.n, show.responses, load.lab.offset, do.svd = FALSE, incl.ind.flds = TRUE, show.all.arrows = FALSE, rotate.by.theta, arrow.head.length = 0.0) {
 
   # capture the call
   call.list <- as.list(match.call())
@@ -1036,9 +1037,9 @@ biplot.glmmTMB <- function(x, ..., alpha, load.names, score.col, load.col, load.
     text(x = (sub.loads[,1] * alpha) + (load.lab.offset * sign(sub.loads[,1])), y = (sub.loads[,2] * alpha) + (load.lab.offset * sign(sub.loads[,2])), labels = sub.names, cex = load.name.cex, col=load.col)#, offset = 0.8)
     if (show.all.arrows) {
       arrows(x0 = rep(0, nrow(loads)), y0 = rep(0, nrow(loads)), x1 = loads[,1] * alpha, y1 = loads[,2] * alpha, length = 0.0, angle = 30, lwd = 0.5, col="grey50", lty = "dashed")
-      arrows(x0 = rep(0, nrow(sub.loads)), y0 = rep(0, nrow(sub.loads)), x1 = sub.loads[,1] * alpha, y1 = sub.loads[,2] * alpha, length = 0.0, angle = 30, lwd = 0.5, col=load.col)
+      arrows(x0 = rep(0, nrow(sub.loads)), y0 = rep(0, nrow(sub.loads)), x1 = sub.loads[,1] * alpha, y1 = sub.loads[,2] * alpha, length = arrow.head.length, angle = 30, lwd = 0.5, col=load.col)
     } else {
-      arrows(x0 = rep(0, nrow(sub.loads)), y0 = rep(0, nrow(sub.loads)), x1 = sub.loads[,1] * alpha, y1 = sub.loads[,2] * alpha, length = 0.0, angle = 30, lwd = 0.5, col=load.col)
+      arrows(x0 = rep(0, nrow(sub.loads)), y0 = rep(0, nrow(sub.loads)), x1 = sub.loads[,1] * alpha, y1 = sub.loads[,2] * alpha, length = arrow.head.length, angle = 30, lwd = 0.5, col=load.col)
     }
   }
 }
